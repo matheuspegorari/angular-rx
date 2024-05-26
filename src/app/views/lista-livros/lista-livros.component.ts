@@ -11,7 +11,7 @@ import {
 } from 'rxjs';
 import { LivroVolumeInfo } from 'src/app/models/livroVolumeInfo';
 import { LivroService } from 'src/app/service/livro.service';
-import { Item } from './../../models/interfaces';
+import { Item, LivrosResultado } from './../../models/interfaces';
 
 const DEBOUNCE = 300;
 @Component({
@@ -22,13 +22,27 @@ const DEBOUNCE = 300;
 export class ListaLivrosComponent {
   campoBusca = new FormControl();
   mensagemErro = '';
+  livrosResultado: LivrosResultado;
   constructor(private service: LivroService) {}
+
+  // totalDeLivros$ = this.campoBusca.valueChanges.pipe(
+  //   debounceTime(DEBOUNCE),
+  //   filter((valorDigitado) => valorDigitado.length >= 3),
+  //   switchMap((valorDigitado) => this.service.buscar(valorDigitado)),
+  //   map((resultado) => (this.livrosResultado = resultado)),
+  //   catchError((error) => {
+  //     console.log(error);
+  //     return of();
+  //   })
+  // );
 
   livrosEncontrados$ = this.campoBusca.valueChanges.pipe(
     debounceTime(DEBOUNCE),
     filter((valorDigitado) => valorDigitado.length >= 3),
     distinctUntilChanged(),
     switchMap((valorDigitado) => this.service.buscar(valorDigitado)),
+    map((resultado) => (this.livrosResultado = resultado)),
+    map((resultado) => resultado.items ?? []),
     map((items) => this.livrosResultadoParaLivros(items)),
     catchError(() => {
       this.mensagemErro = 'Ops, ocorreu um erro. Recarregue a aplicação!';
